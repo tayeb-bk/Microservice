@@ -1,0 +1,111 @@
+version: "3.9"
+
+services:
+  # 🧱 Base de données MySQL
+  mysql-db:
+    image: mysql:8
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root        # ✅ mot de passe root explicite
+      MYSQL_DATABASE: charity_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql      # ✅ Volume persistant
+    networks:
+      - charity-net
+
+  # 🔑 Keycloak (avec import automatique du realm)
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: dev-mem
+    ports:
+      - "8080:8080"
+    networks:
+      - charity-net
+
+
+  # 🧠 Eureka Server
+  eureka-server:
+    build: ./Eureka
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - charity-net
+
+  # 👤 User Service
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/charity_db?allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - eureka-server
+      - mysql-db
+    networks:
+      - charity-net
+    # 🌐 Frontend Angular
+  angular-front:
+    build: ./charity   # ← dossier de ton projet Angular
+    container_name: angular-front
+    ports:
+      - "8083:80"      # ✅ ton app sera accessible sur http://localhost:8083
+    depends_on:
+      - keycloak
+      - api-gateway
+    networks:
+      - charity-net
+
+    
+
+  # 🚪 API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8980:8980"
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      - eureka-server
+      - user-service
+    networks:
+      - charity-net
+
+  # 🧩 PhpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mysql-db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8082:80"
+    depends_on:
+      - mysql-db
+    networks:
+      - charity-net
+
+# 🕸️ Réseau partagé entre les services
+networks:
+  charity-net:
+    driver: bridge
+
+# 💾 Volumes persistants
+volumes:
+  mysql_data:
+  keycloak_data:

@@ -1,0 +1,132 @@
+<div class="blog-container">
+  <!-- En-tête -->
+  <div class="page-header mb-4">
+    <h1 class="page-title">📰 Gestion des Articles</h1>
+    <p class="page-subtitle">Créez et gérez vos publications</p>
+  </div>
+
+  <!-- Formulaire de création STICKY -->
+  <div class="creation-form-sticky">
+    <div class="creation-form-card">
+      <div class="form-header">
+        <span class="form-icon">✍️</span>
+        <h5 class="form-title">Nouveau post</h5>
+      </div>
+
+      <form (ngSubmit)="createPost()" #postForm="ngForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <input
+              type="text"
+              [(ngModel)]="newPost.title"
+              name="title"
+              placeholder="Titre de l'article"
+              class="form-input"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <input
+              type="text"
+              [(ngModel)]="newPost.author"
+              name="author"
+              placeholder="Auteur"
+              class="form-input"
+              required
+            />
+          </div>
+
+          <div class="form-group full-width">
+            <textarea
+              [(ngModel)]="newPost.content"
+              name="content"
+              placeholder="Contenu de l'article..."
+              rows="3"
+              class="form-input"
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <input
+              type="url"
+              [(ngModel)]="newPost.imageUrl"
+              name="imageUrl"
+              placeholder="URL de l'image (optionnel)"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <button class="btn-submit" type="submit">
+              <span>📤</span> Publier
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- États de chargement et erreur -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Chargement des articles...</p>
+  </div>
+
+  <div *ngIf="error" class="error-alert">
+    <strong>⚠️ Erreur:</strong> {{ error }}
+  </div>
+
+  <!-- Liste des posts -->
+  <div *ngIf="!loading && posts.length > 0" class="posts-section">
+    <div class="section-header">
+      <h3>📚 Articles publiés</h3>
+      <span class="posts-count">{{ posts.length }}</span>
+    </div>
+
+    <div class="posts-grid">
+      <div class="post-card" *ngFor="let post of posts">
+        <div class="post-image">
+          <img
+            *ngIf="post.imageUrl"
+            [src]="post.imageUrl"
+            [alt]="post.title"
+            (error)="handleImageError($event)"
+          />
+          <div *ngIf="!post.imageUrl" class="image-placeholder">
+            <span class="placeholder-icon">🖼️</span>
+          </div>
+        </div>
+
+        <div class="post-content">
+          <h5 class="post-title">{{ post.title }}</h5>
+
+          <div class="post-meta">
+            <span class="meta-item">
+              <span class="meta-icon">👤</span>{{ post.author }}
+            </span>
+            <span class="meta-item">
+              <span class="meta-icon">📅</span>{{ post.createdAt | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+
+          <p class="post-text">
+            {{ post.content.length > 120 ? (post.content | slice:0:120) + '...' : post.content }}
+          </p>
+
+          <button class="btn-delete" (click)="deletePost(post.id)">
+            <span>🗑️</span> Supprimer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message si aucun post -->
+  <div *ngIf="!loading && posts.length === 0" class="empty-state">
+    <div class="empty-icon">📭</div>
+    <h4>Aucun article</h4>
+    <p>Créez votre premier article ci-dessus</p>
+  </div>
+</div>
