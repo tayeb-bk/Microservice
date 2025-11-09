@@ -2,6 +2,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';  // Import the current env
+
 
 export interface Post {
   id?: number;
@@ -14,7 +16,8 @@ export interface Post {
 
 @Injectable({ providedIn: 'root' })
 export class PostService {
-  private apiUrl = 'http://localhost:8989/api/posts';
+  private apiUrl = 'http://localhost:8989/api/posts'; // ✅ Direct vers Blog Service
+  //private apiUrl = `${environment.apiUrl}/posts`;  // Use env + /posts
 
   constructor(private http: HttpClient) {}
 

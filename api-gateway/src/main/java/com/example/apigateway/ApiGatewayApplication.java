@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
 import java.util.Arrays;
+import java.util.List;
 
 @SpringBootApplication
 @EnableDiscoveryClient
@@ -20,32 +20,29 @@ public class ApiGatewayApplication {
         SpringApplication.run(ApiGatewayApplication.class, args);
     }
 
-    // ------------------- Routes Gateway -------------------
     @Bean
-    public RouteLocator customRoutes(RouteLocatorBuilder builder) {
+    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
         return builder.routes()
                 .route("user-service", r -> r
                         .path("/api/users/**")
-                        .filters(f -> f.rewritePath("/api/users/(?<segment>.*)", "/api/users/${segment}"))
-                        .uri("lb://user-service"))
+                        .uri("lb://USER-SERVICE")) // Utilisez le nom exact d'Eureka
                 .route("blog-service", r -> r
                         .path("/api/posts/**")
-                        .filters(f -> f.rewritePath("/api/posts/(?<segment>.*)", "/${segment}"))
-                        .uri("lb://blog"))
+                        .uri("lb://BLOG")) // Utilisez le nom exact d'Eureka
                 .build();
     }
 
-    // ✅ CORS global (Angular)
     @Bean
-    public CorsWebFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
-        config.setAllowedHeaders(Arrays.asList("*"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+    public CorsWebFilter corsWebFilter() {
+        CorsConfiguration corsConfig = new CorsConfiguration();
+        corsConfig.setAllowedOrigins(List.of("http://localhost:8083"));
+        corsConfig.setMaxAge(3600L);
+        corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        corsConfig.setAllowedHeaders(List.of("*"));
+        corsConfig.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
+        source.registerCorsConfiguration("/**", corsConfig);
 
         return new CorsWebFilter(source);
     }

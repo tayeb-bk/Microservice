@@ -24,11 +24,15 @@ services:
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_DB: dev-mem
+      KC_DB: dev-file     # ✅ Base embarquée persistante sur disque
+    volumes:
+      - keycloak_data:/opt/keycloak/data   # ✅ Persistance locale
     ports:
       - "8080:8080"
     networks:
       - charity-net
+
+
 
 
   # 🧠 Eureka Server
@@ -69,7 +73,24 @@ services:
     networks:
       - charity-net
 
-    
+    # 📰 Blog Service
+  blog-service:
+    build: ./blog
+    container_name: blog-service
+    ports:
+      - "8989:8989"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/blog?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - eureka-server
+      - mysql-db
+    networks:
+      - charity-net
+
 
   # 🚪 API Gateway
   api-gateway:
