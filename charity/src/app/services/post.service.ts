@@ -16,8 +16,8 @@ export interface Post {
 
 @Injectable({ providedIn: 'root' })
 export class PostService {
-  private apiUrl = 'http://localhost:8989/api/posts'; // ✅ Direct vers Blog Service
-  //private apiUrl = `${environment.apiUrl}/posts`;  // Use env + /posts
+  private apiUrl = 'http://localhost:8989/api/posts';
+  //private apiUrl = `${environment.apiUrl}/posts`;
 
   constructor(private http: HttpClient) {}
 

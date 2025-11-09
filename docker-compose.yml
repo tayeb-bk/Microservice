@@ -90,7 +90,21 @@ services:
       - mysql-db
     networks:
       - charity-net
-
+  donation-service:
+    build: ./donation
+    container_name: donation-service
+    ports:
+      - "8282:8282"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/donation_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - mysql-db
+    networks:
+      - charity-net
 
   # 🚪 API Gateway
   api-gateway:

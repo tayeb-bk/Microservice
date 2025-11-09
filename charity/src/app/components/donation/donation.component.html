@@ -1,0 +1,161 @@
+<!-- src/app/components/donation/donation.component.html -->
+<div class="donation-container">
+  <header class="page-header">
+    <h1>🎁 Gestion des Donations</h1>
+    <p class="subtitle">Gérez et suivez toutes les donations</p>
+  </header>
+
+  <div class="form-section">
+    <h2>➕ Ajouter une Donation</h2>
+    <form (ngSubmit)="addDonation()" class="donation-form">
+      <div class="form-group">
+        <label for="donorName">Nom du Donateur *</label>
+        <input
+          type="text"
+          id="donorName"
+          placeholder="Ex: Jean Dupont"
+          [(ngModel)]="newDonation.donorName"
+          name="donorName"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          placeholder="exemple@email.com"
+          [(ngModel)]="newDonation.email"
+          name="email"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="amount">Montant (€) *</label>
+        <input
+          type="number"
+          id="amount"
+          placeholder="0.00"
+          [(ngModel)]="newDonation.amount"
+          name="amount"
+          min="1"
+          step="0.01"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="paymentMethod">Méthode de Paiement</label>
+        <select
+          id="paymentMethod"
+          [(ngModel)]="newDonation.paymentMethod"
+          name="paymentMethod"
+        >
+          <option value="">Choisir une méthode</option>
+          <option value="VISA">💳 Visa</option>
+          <option value="MASTERCARD">💳 Mastercard</option>
+          <option value="AMERICAN_EXPRESS">💳 American Express</option>
+          <option value="PAYPAL">💰 PayPal</option>
+          <option value="D17">🏦 D17</option>
+          <option value="BANK_TRANSFER">🏦 Virement Bancaire</option>
+          <option value="CASH">💵 Espèces</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="campaign">Campagne</label>
+        <input
+          type="text"
+          id="campaign"
+          placeholder="Ex: Campagne Hiver 2025"
+          [(ngModel)]="newDonation.campaign"
+          name="campaign"
+        />
+      </div>
+
+      <div class="form-group full-width">
+        <label for="message">Message (optionnel)</label>
+        <textarea
+          id="message"
+          placeholder="Message du donateur..."
+          [(ngModel)]="newDonation.message"
+          name="message"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <button type="submit" class="btn-submit">
+        ✅ Ajouter la Donation
+      </button>
+    </form>
+  </div>
+
+  <hr class="divider" />
+
+  <div class="table-section">
+    <div class="table-header">
+      <h2>📋 Liste des Donations</h2>
+      <span class="badge-count">{{ donations.length }} donation(s)</span>
+    </div>
+
+    <div class="table-responsive">
+      <table class="donations-table">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Donateur</th>
+          <th>Email</th>
+          <th>Montant</th>
+          <th>Méthode</th>
+          <th>Statut</th>
+          <th>Campagne</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let donation of donations" class="table-row">
+          <td class="td-id">{{ donation.id }}</td>
+          <td class="td-donor">
+            <div class="donor-info">
+              <span class="donor-icon">👤</span>
+              <span>{{ donation.donorName }}</span>
+            </div>
+          </td>
+          <td class="td-email">{{ donation.email }}</td>
+          <td class="td-amount">
+            <span class="amount-value">{{ donation.amount | currency:'EUR':'symbol':'1.2-2' }}</span>
+          </td>
+          <td class="td-method">
+            <span class="method-badge">{{ donation.paymentMethod }}</span>
+          </td>
+          <td class="td-status">
+              <span class="status-badge" [ngClass]="'status-' + donation.donationStatus?.toLowerCase()">
+                {{ donation.donationStatus || 'PENDING' }}
+              </span>
+          </td>
+          <td class="td-campaign">{{ donation.campaign }}</td>
+          <td class="td-actions">
+            <button
+              (click)="deleteDonation(donation.id!)"
+              class="btn-delete"
+              title="Supprimer"
+            >
+              🗑️
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="donations.length === 0" class="empty-row">
+          <td colspan="8" class="empty-message">
+            <div class="empty-state">
+              <span class="empty-icon">📭</span>
+              <p>Aucune donation trouvée</p>
+              <small>Ajoutez votre première donation ci-dessus</small>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

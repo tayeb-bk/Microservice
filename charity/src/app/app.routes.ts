@@ -3,6 +3,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.components'
 import {NavbarComponent} from './components/navbar/navbar.components';
 import {SidebarComponent} from './components/sidebar/sidebar.components';
 import {PostComponent} from './components/posts/post.component';
+import {DonationComponent} from './components/donation/donation.component';
 
 export const routes: Routes = [
   {
@@ -15,6 +16,9 @@ export const routes: Routes = [
       },{
         path: 'Post',
         component: PostComponent
+      },{
+        path: 'Don',
+        component: DonationComponent
       }
     ]
   }
