@@ -133,9 +133,23 @@
   transform: translateY(-3px);
   box-shadow: 0 8px 25px rgba(17, 153, 142, 0.4);
 }
+.btn-edit {
+  background: #e3f2fd;
+  color: #1976d2;
+  margin-right: 6px;
+}
 
+.btn-edit:hover {
+  background: #bbdefb;
+  transform: scale(1.1);
+}
 .btn-submit:active {
   transform: translateY(-1px);
+}
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 10px;
 }
 
 /* Divider */

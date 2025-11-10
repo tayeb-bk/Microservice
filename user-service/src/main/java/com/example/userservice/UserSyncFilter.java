@@ -1,14 +1,12 @@
 package com.example.userservice;
 
-
-import com.example.userservice.Repository.UserRepository;
-import com.example.userservice.entity.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,10 +15,10 @@ import java.io.IOException;
 @Component
 public class UserSyncFilter extends OncePerRequestFilter {
 
-    private final UserRepository userRepository;
+    private final UserSynchronizer userSynchronizer;
 
-    public UserSyncFilter(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserSyncFilter(UserSynchronizer userSynchronizer) {
+        this.userSynchronizer = userSynchronizer;
     }
 
     @Override
@@ -29,25 +27,18 @@ public class UserSyncFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.oauth2.jwt.Jwt jwt) {
-            String keycloakId = jwt.getSubject();
-            String username = jwt.getClaimAsString("preferred_username");
-            String email = jwt.getClaimAsString("email");
-            String firstName = jwt.getClaimAsString("given_name");
-            String lastName = jwt.getClaimAsString("family_name");
-
-            // Synchronisation
-            userRepository.findById(keycloakId).or(() -> {
-                User newUser = new User();
-                newUser.setId(keycloakId);
-                newUser.setUsername(username);
-                newUser.setEmail(email);
-                newUser.setFirstName(firstName);
-                newUser.setLastName(lastName);
-                return java.util.Optional.of(userRepository.save(newUser));
-            });
+        if (auth != null && auth.getPrincipal() instanceof Jwt jwt) {
+            try {
+                var user = userSynchronizer.synchronizeUser(jwt);
+                System.out.println("✅ User synchronized: " + user.getUsername() + " (" + user.getRole() + ")");
+            } catch (Exception e) {
+                System.err.println("❌ Error during user synchronization: " + e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("⚠️ Aucun JWT détecté pour cette requête");
         }
 
         filterChain.doFilter(request, response);

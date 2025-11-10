@@ -5,15 +5,16 @@
     <p class="page-subtitle">Créez et gérez vos publications</p>
   </div>
 
-  <!-- Formulaire de création STICKY -->
+  <!-- Formulaire de création/édition STICKY -->
   <div class="creation-form-sticky">
     <div class="creation-form-card">
       <div class="form-header">
-        <span class="form-icon">✍️</span>
-        <h5 class="form-title">Nouveau post</h5>
+        <span class="form-icon">{{ isEditing ? '✏️' : '✍️' }}</span>
+        <h5 class="form-title">{{ isEditing ? 'Modifier l\'article' : 'Nouveau post' }}</h5>
       </div>
 
-      <form (ngSubmit)="createPost()" #postForm="ngForm">
+      <!-- Mode Création -->
+      <form *ngIf="!isEditing" (ngSubmit)="createPost()" #postForm="ngForm">
         <div class="form-grid">
           <div class="form-group">
             <input
@@ -65,6 +66,66 @@
           </div>
         </div>
       </form>
+
+      <!-- Mode Édition -->
+      <form *ngIf="isEditing && editingPost" (ngSubmit)="saveEdit()" #editForm="ngForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <input
+              type="text"
+              [(ngModel)]="editingPost.title"
+              name="editTitle"
+              placeholder="Titre de l'article"
+              class="form-input"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <input
+              type="text"
+              [(ngModel)]="editingPost.author"
+              name="editAuthor"
+              placeholder="Auteur"
+              class="form-input"
+              required
+            />
+          </div>
+
+          <div class="form-group full-width">
+            <textarea
+              [(ngModel)]="editingPost.content"
+              name="editContent"
+              placeholder="Contenu de l'article..."
+              rows="3"
+              class="form-input"
+              required
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <input
+              type="url"
+              [(ngModel)]="editingPost.imageUrl"
+              name="editImageUrl"
+              placeholder="URL de l'image (optionnel)"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <button class="btn-submit btn-edit" type="submit">
+              <span>💾</span> Sauvegarder
+            </button>
+          </div>
+
+          <div class="form-group">
+            <button class="btn-cancel" type="button" (click)="cancelEdit()">
+              <span>❌</span> Annuler
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -78,15 +139,101 @@
     <strong>⚠️ Erreur:</strong> {{ error }}
   </div>
 
+  <!-- Barre de filtres et recherche -->
+  <div *ngIf="!loading && posts.length > 0" class="filters-section">
+    <div class="filters-card">
+      <div class="filters-header">
+        <span class="filter-icon">🔍</span>
+        <h5 class="filter-title">Recherche & Filtres</h5>
+      </div>
+
+      <div class="filters-grid">
+        <!-- Barre de recherche -->
+        <div class="filter-group search-group">
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔎</span>
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="applyFilters()"
+              placeholder="Rechercher par titre, contenu ou auteur..."
+              class="search-input"
+            />
+            <button
+              *ngIf="searchTerm"
+              class="clear-search"
+              (click)="searchTerm = ''; applyFilters()"
+              title="Effacer la recherche"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtre par auteur -->
+        <div class="filter-group">
+          <label class="filter-label">
+            <span class="label-icon">👤</span> Auteur
+          </label>
+          <select
+            [(ngModel)]="selectedAuthor"
+            (ngModelChange)="applyFilters()"
+            class="filter-select"
+          >
+            <option value="">Tous les auteurs</option>
+            <option *ngFor="let author of uniqueAuthors" [value]="author">
+              {{ author }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Tri -->
+        <div class="filter-group">
+          <label class="filter-label">
+            <span class="label-icon">🔄</span> Trier par
+          </label>
+          <select
+            [(ngModel)]="sortBy"
+            (ngModelChange)="applyFilters()"
+            class="filter-select"
+          >
+            <option value="date-desc">📅 Plus récent</option>
+            <option value="date-asc">📅 Plus ancien</option>
+            <option value="title-asc">🔤 Titre (A-Z)</option>
+            <option value="title-desc">🔤 Titre (Z-A)</option>
+          </select>
+        </div>
+
+        <!-- Bouton reset -->
+        <div class="filter-group">
+          <button
+            class="btn-reset-filters"
+            (click)="resetFilters()"
+            *ngIf="searchTerm || selectedAuthor || sortBy !== 'date-desc'"
+          >
+            <span>🔄</span> Réinitialiser
+          </button>
+        </div>
+      </div>
+
+      <!-- Résultats de la recherche -->
+      <div class="filter-results" *ngIf="searchTerm || selectedAuthor">
+        <span class="results-text">
+          📊 {{ filteredPosts.length }} résultat(s) trouvé(s)
+        </span>
+      </div>
+    </div>
+  </div>
+
   <!-- Liste des posts -->
-  <div *ngIf="!loading && posts.length > 0" class="posts-section">
+  <div *ngIf="!loading && filteredPosts.length > 0" class="posts-section">
     <div class="section-header">
       <h3>📚 Articles publiés</h3>
-      <span class="posts-count">{{ posts.length }}</span>
+      <span class="posts-count">{{ filteredPosts.length }}</span>
     </div>
 
     <div class="posts-grid">
-      <div class="post-card" *ngFor="let post of posts">
+      <div class="post-card" *ngFor="let post of filteredPosts" [class.editing]="isEditing && editingPost?.id === post.id">
         <div class="post-image">
           <img
             *ngIf="post.imageUrl"
@@ -115,9 +262,15 @@
             {{ post.content.length > 120 ? (post.content | slice:0:120) + '...' : post.content }}
           </p>
 
-          <button class="btn-delete" (click)="deletePost(post.id)">
-            <span>🗑️</span> Supprimer
-          </button>
+          <!-- Boutons d'action -->
+          <div class="action-buttons">
+            <button class="btn-edit-card" (click)="startEdit(post)">
+              <span>✏️</span> Modifier
+            </button>
+            <button class="btn-delete" (click)="deletePost(post.id)">
+              <span>🗑️</span> Supprimer
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -128,5 +281,15 @@
     <div class="empty-icon">📭</div>
     <h4>Aucun article</h4>
     <p>Créez votre premier article ci-dessus</p>
+  </div>
+
+  <!-- Message si aucun résultat de recherche -->
+  <div *ngIf="!loading && posts.length > 0 && filteredPosts.length === 0" class="empty-state">
+    <div class="empty-icon">🔍</div>
+    <h4>Aucun résultat</h4>
+    <p>Aucun article ne correspond à votre recherche</p>
+    <button class="btn-reset-empty" (click)="resetFilters()">
+      Réinitialiser les filtres
+    </button>
   </div>
 </div>

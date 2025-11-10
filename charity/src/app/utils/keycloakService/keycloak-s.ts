@@ -12,7 +12,7 @@ export class KeycloakS {
   get keycloak() {
     if (!this._keycloak) {
       this._keycloak = new Keycloak({
-        url: environment.keycloakUrl,   // ✅ utilise l’environnement
+        url: environment.keycloakUrl,
         realm: environment.realm,
         clientId: environment.clientId,
       });

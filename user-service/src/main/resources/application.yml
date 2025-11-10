@@ -6,7 +6,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8080/realms/Charity
+          issuer-uri: http://localhost:8080/realms/Charity  # ton realm Keycloak
 
   datasource:
     url: jdbc:mysql://localhost:3306/micro_user?useSSL=false&serverTimezone=UTC
@@ -25,12 +25,3 @@ spring:
 
 server:
   port: 8081
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-
-

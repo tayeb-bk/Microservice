@@ -37,6 +37,15 @@
         <i class="icon">⚙️</i>
         <span>Paramètres</span>
       </a>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <div class="navbar-right user-info">
+        <button class="logout-btn" (click)="logout()">Déconnexion</button>
+      </div>
     </nav>
   </aside>
 
@@ -45,11 +54,14 @@
     <!-- Top Navbar -->
     <header class="top-navbar">
       <div class="navbar-left">
-        <h1>Tableau de Bord</h1>
+        <h1>Dashboard </h1>
+        <span class="user-name">{{ username }}</span>
+
       </div>
       <div class="navbar-right">
 
       </div>
+
     </header>
 
     <!-- Page Content -->
