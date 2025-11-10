@@ -32,6 +32,23 @@ services:
     networks:
       - charity-net
 
+  micronotif-service:
+    build: ./micronotif  # Path to your micronotif project
+    container_name: micronotif-service
+    ports:
+      - "8989:8989"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db:3306/charity_db?allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - eureka-server
+      - mysql-db
+    networks:
+      - charity-net
+
 
 
 
