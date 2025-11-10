@@ -16,23 +16,32 @@
         <i class="icon">✍️</i>
         <span>Blog</span>
       </a>
+
       <a href="/Don" class="nav-item" routerLink="/Don" routerLinkActive="active">
         <i class="icon">🎁</i>
         <span>Donation</span>
       </a>
 
+      <!-- Notifications Link -->
+      <a href="/notifications" class="nav-item" routerLink="/notifications" routerLinkActive="active">
+        <i class="icon">🔔</i>
+        <span>Notifications</span>
+        <!-- Optional: Badge for unread count -->
+        <span class="notification-badge" *ngIf="unreadCount > 0">
+          {{ unreadCount }}
+        </span>
+      </a>
 
       <a href="#" class="nav-item" routerLink="#" routerLinkActive="active">
         <i class="icon">👤</i>
         <span>Profil</span>
       </a>
 
-
-
       <a href="#" class="nav-item">
         <i class="icon">📋</i>
         <span>Gestion</span>
       </a>
+
       <a href="#" class="nav-item">
         <i class="icon">⚙️</i>
         <span>Paramètres</span>
@@ -48,7 +57,8 @@
         <h1>Tableau de Bord</h1>
       </div>
       <div class="navbar-right">
-
+        <!-- Optional: Notification badge component can go here -->
+        <app-notification-badge></app-notification-badge>
       </div>
     </header>
 
