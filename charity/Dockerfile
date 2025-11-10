@@ -6,7 +6,7 @@ RUN npm install
 COPY . .
 
 # ⚡ Build Angular (en mode production)
-RUN npm run build -- --configuration production --project charity
+RUN npm run build -- --configuration production --project charity --no-progress --verbose --delete-output-path=false --optimization=false
 
 # Étape 2 : Serve avec Nginx
 FROM nginx:stable-alpine

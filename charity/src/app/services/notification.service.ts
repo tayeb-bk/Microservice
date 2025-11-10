@@ -21,7 +21,7 @@ export interface Notification {
 })
 export class NotificationService {
   // Use API Gateway instead of direct service call
-  private apiUrl = 'http://localhost:8980/api/notifications';
+  private apiUrl = 'http://localhost:8985/api/notifications';
   private notificationsSubject = new BehaviorSubject<Notification[]>([]);
   public notifications$ = this.notificationsSubject.asObservable();
   private unreadCountSubject = new BehaviorSubject<number>(0);

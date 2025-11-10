@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { KeycloakS } from '../../utils/keycloakService/keycloak-s';
 import { NotificationService } from '../../services/notification.service';
 import { NotificationBadgeComponent } from '../notification-badge/notification-badge';
+import { CommonModule } from '@angular/common';
 
 interface KeycloakToken {
   preferred_username?: string;
@@ -15,7 +16,7 @@ interface KeycloakToken {
   selector: 'app-sidebar',
   standalone: true,
   templateUrl: './sidebar.components.html',
-  imports: [
+  imports: [CommonModule,
     NotificationBadgeComponent,
     RouterOutlet,
   ],

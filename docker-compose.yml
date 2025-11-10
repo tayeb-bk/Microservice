@@ -36,7 +36,7 @@ services:
     build: ./micronotif  # Path to your micronotif project
     container_name: micronotif-service
     ports:
-      - "8989:8989"
+      - "8985:8985"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
