@@ -1,0 +1,138 @@
+<div class="container">
+  <nav class="muted" style="margin-bottom:8px; font-size:13px">
+    <a [routerLink]="['/dashboard']">Accueil</a> / <span>Événements</span>
+  </nav>
+
+  <div class="header">
+    <div class="title">Événements</div>
+    <div class="actions" style="width:100%">
+      <div class="search">
+        <input type="text" placeholder="Rechercher par titre..." [(ngModel)]="searchTerm" />
+        <button class="btn btn-secondary" (click)="searchTerm=''">Effacer</button>
+      </div>
+      <button class="btn btn-primary" (click)="goNew()">Nouvel événement</button>
+    </div>
+  </div>
+
+  <section style="display:grid; gap:8px; margin-bottom:12px">
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:8px">
+      <div style="display:flex; gap:8px; align-items:center">
+        <label class="muted" style="min-width:60px">Type</label>
+        <select [(ngModel)]="filterType" class="input" style="flex:1" (ngModelChange)="saveSettings()">
+          <option [ngValue]="''">Tous</option>
+          <option *ngFor="let t of types" [ngValue]="t">{{ t }}</option>
+        </select>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center">
+        <label class="muted" style="min-width:60px">Du</label>
+        <input type="date" [(ngModel)]="dateFrom" class="input" style="flex:1" (ngModelChange)="saveSettings()" />
+      </div>
+      <div style="display:flex; gap:8px; align-items:center">
+        <label class="muted" style="min-width:60px">Au</label>
+        <input type="date" [(ngModel)]="dateTo" class="input" style="flex:1" (ngModelChange)="saveSettings()" />
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end">
+        <button class="btn btn-secondary" (click)="filterType=''; dateFrom=''; dateTo=''; page=1; saveSettings()">Réinitialiser</button>
+        <button class="btn btn-secondary" (click)="exportCsv()">Exporter CSV</button>
+      </div>
+    </div>
+
+    <details style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:10px">
+      <summary style="cursor:pointer; font-weight:600">Options avancées</summary>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:8px; margin-top:8px">
+        <div>
+          <div class="muted" style="margin-bottom:6px">Colonnes visibles</div>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px"><input type="checkbox" [(ngModel)]="showTitle" (ngModelChange)="saveSettings()"/> Titre</label>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px"><input type="checkbox" [(ngModel)]="showType" (ngModelChange)="saveSettings()"/> Type</label>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px"><input type="checkbox" [(ngModel)]="showDate" (ngModelChange)="saveSettings()"/> Date</label>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px"><input type="checkbox" [(ngModel)]="showGoal" (ngModelChange)="saveSettings()"/> Objectif</label>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px"><input type="checkbox" [(ngModel)]="showCollected" (ngModelChange)="saveSettings()"/> Collecté</label>
+          <label style="display:flex; align-items:center; gap:8px; margin-bottom:6px"><input type="checkbox" [(ngModel)]="showProgress" (ngModelChange)="saveSettings()"/> Progression</label>
+        </div>
+        <div>
+          <div class="muted" style="margin-bottom:6px">Pagination</div>
+          <div style="display:flex; gap:8px; align-items:center">
+            <label class="muted">Taille</label>
+            <select [(ngModel)]="pageSize" class="input" (ngModelChange)="page=1; saveSettings()">
+              <option *ngFor="let s of pageSizes" [ngValue]="s">{{ s }}</option>
+            </select>
+            <div class="muted">Page {{ page }} / {{ pageCount }}</div>
+          </div>
+        </div>
+      </div>
+    </details>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap:8px">
+      <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:12px">
+        <div class="muted">Événements</div>
+        <div style="font-weight:600">{{ totalEvents }}</div>
+      </div>
+      <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:12px">
+        <div class="muted">Objectif total</div>
+        <div style="font-weight:600">{{ totalGoal | number:'1.0-2' }}</div>
+      </div>
+      <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:12px">
+        <div class="muted">Collecté total</div>
+        <div style="font-weight:600">{{ totalCollected | number:'1.0-2' }}</div>
+      </div>
+      <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:12px">
+        <div class="muted">Progression moyenne</div>
+        <div style="font-weight:600">{{ avgProgress }}%</div>
+      </div>
+      <div style="background:#fff; border:1px solid #e5e7eb; border-radius:10px; padding:12px">
+        <div class="muted">Objectif atteint</div>
+        <div style="font-weight:600">{{ achievedCount }}</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div *ngIf="loading" class="muted">Chargement...</div>
+    <table *ngIf="!loading && view.length" class="table">
+      <thead>
+        <tr>
+          <th *ngIf="showTitle" (click)="onSort('title')" style="cursor:pointer">Titre <span class="muted" *ngIf="sortKey==='title'">({{ sortDir }})</span></th>
+          <th *ngIf="showType" (click)="onSort('type')" style="cursor:pointer">Type <span class="muted" *ngIf="sortKey==='type'">({{ sortDir }})</span></th>
+          <th *ngIf="showDate" (click)="onSort('dateEvent')" style="cursor:pointer">Date <span class="muted" *ngIf="sortKey==='dateEvent'">({{ sortDir }})</span></th>
+          <th *ngIf="showGoal" (click)="onSort('goalAmount')" style="cursor:pointer">Objectif <span class="muted" *ngIf="sortKey==='goalAmount'">({{ sortDir }})</span></th>
+          <th *ngIf="showCollected" (click)="onSort('collectedAmount')" style="cursor:pointer">Collecté <span class="muted" *ngIf="sortKey==='collectedAmount'">({{ sortDir }})</span></th>
+          <th *ngIf="showProgress" (click)="onSort('progress')" style="cursor:pointer">Progression <span class="muted" *ngIf="sortKey==='progress'">({{ sortDir }})</span></th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of paged">
+          <td *ngIf="showTitle">
+            <div style="font-weight:600">{{ e.title }}</div>
+            <div class="muted">{{ e.location }}</div>
+          </td>
+          <td *ngIf="showType"><span class="badge">{{ e.type }}</span></td>
+          <td *ngIf="showDate">{{ e.dateEvent }}</td>
+          <td *ngIf="showGoal">{{ e.goalAmount | number:'1.0-2' }}</td>
+          <td *ngIf="showCollected">{{ e.collectedAmount | number:'1.0-2' }}</td>
+          <td *ngIf="showProgress">
+            <div class="progress"><div [style.width.%]="progress(e)"></div></div>
+            <div class="muted">{{ progress(e) }}%</div>
+          </td>
+          <td>
+            <div class="row-actions">
+              <a class="btn btn-secondary" [routerLink]="['/events', e.idEvent]">Voir</a>
+              <a class="btn btn-secondary" [routerLink]="['/events', e.idEvent, 'edit']">Modifier</a>
+              <button class="btn" style="background:#fee2e2;color:#991b1b;border-color:#fecaca" (click)="remove(e)">Supprimer</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && !view.length" class="empty">Aucun événement trouvé.</div>
+
+    <div *ngIf="!loading && view.length" style="display:flex; justify-content:space-between; align-items:center; margin-top:10px">
+      <div class="muted">Page {{ page }} / {{ pageCount }}</div>
+      <div style="display:flex; gap:8px; align-items:center">
+        <button class="btn btn-secondary" (click)="prevPage()" [disabled]="page<=1">Précédent</button>
+        <button class="btn btn-secondary" (click)="nextPage()" [disabled]="page>=pageCount">Suivant</button>
+      </div>
+    </div>
+  </section>
+</div>

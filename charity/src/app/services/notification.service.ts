@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, interval } from 'rxjs';
 import { switchMap, startWith, tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface Notification {
   id?: number;
@@ -21,7 +22,7 @@ export interface Notification {
 })
 export class NotificationService {
   // Use API Gateway instead of direct service call
-  private apiUrl = 'http://localhost:8985/api/notifications';
+  private apiUrl = `${environment.notificationServiceUrl};/api/notifications`;
   private notificationsSubject = new BehaviorSubject<Notification[]>([]);
   public notifications$ = this.notificationsSubject.asObservable();
   private unreadCountSubject = new BehaviorSubject<number>(0);
@@ -55,49 +56,49 @@ export class NotificationService {
   // Get all notifications for a user
   getUserNotifications(userId: number): Observable<Notification[]> {
     console.log('Calling API Gateway for user notifications:', userId);
-    return this.http.get<Notification[]>(`${this.apiUrl}/user/${userId}`).pipe(
+    return this.http.get<Notification[]>(`${this.notoificationServiceUrl}/user/${userId}`).pipe(
       tap(notifications => console.log('Received notifications:', notifications))
     );
   }
 
   // Get notification by ID
   getNotification(id: number): Observable<Notification> {
-    return this.http.get<Notification>(`${this.apiUrl}/${id}`);
+    return this.http.get<Notification>(`${this.notoificationServiceUrl}/${id}`);
   }
 
   // Create new notification
   createNotification(notification: Notification): Observable<Notification> {
-    return this.http.post<Notification>(this.apiUrl, notification);
+    return this.http.post<Notification>(this.notoificationServiceUrl, notification);
   }
 
   // Mark notification as read
   markAsRead(id: number): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/${id}/read`, {});
+    return this.http.put<void>(`${this.notoificationServiceUrl}/${id}/read`, {});
   }
 
   // Mark all as read
   markAllAsRead(userId: number): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/user/${userId}/read-all`, {});
+    return this.http.put<void>(`${this.notoificationServiceUrl}/user/${userId}/read-all`, {});
   }
 
   // Delete notification
   deleteNotification(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.http.delete<void>(`${this.notoificationServiceUrl}/${id}`);
   }
 
   // Delete all notifications
   deleteAllNotifications(userId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/user/${userId}/all`);
+    return this.http.delete<void>(`${this.notoificationServiceUrl}/user/${userId}/all`);
   }
 
   // Get notification count for user
   getNotificationCount(userId: number): Observable<number> {
-    return this.http.get<number>(`${this.apiUrl}/user/${userId}/count`);
+    return this.http.get<number>(`${this.notoificationServiceUrl}/user/${userId}/count`);
   }
 
   // Get unread notifications
   getUnreadNotifications(userId: number): Observable<Notification[]> {
-    return this.http.get<Notification[]>(`${this.apiUrl}/user/${userId}/unread`);
+    return this.http.get<Notification[]>(`${this.notoificationServiceUrl}/user/${userId}/unread`);
   }
 
   // Refresh notifications manually

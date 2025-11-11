@@ -37,15 +37,21 @@
         <span>Profil</span>
       </a>
 
-      <a href="#" class="nav-item">
+      <!-- Reports Link - NEW -->
+      <a href="/reports" class="nav-item" routerLink="/reports" routerLinkActive="active">
         <i class="icon">📋</i>
-        <span>Gestion</span>
+        <span>Reports</span>
+      </a>
+      <a href="/events" class="nav-item" routerLink="/events" routerLinkActive="active">
+        <i class="icon">🎫</i>
+        <span>Events</span>
       </a>
 
-      <a href="#" class="nav-item">
-        <i class="icon">⚙️</i>
-        <span>Paramètres</span>
+      <a href="/formation" class="nav-item" routerLink="/formation" routerLinkActive="active">
+        <i class="icon">📚</i>
+        <span>Formations</span>
       </a>
+
       <br>
       <br>
       <br>
@@ -65,6 +71,7 @@
       <div class="navbar-left">
         <h1>Dashboard </h1>
         <span class="user-name">{{ username }}</span>
+
 
       </div>
       <div class="navbar-right">

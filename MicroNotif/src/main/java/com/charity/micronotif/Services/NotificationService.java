@@ -4,7 +4,6 @@ import com.charity.micronotif.Entity.Notification;
 import com.charity.micronotif.Repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,9 +14,7 @@ import java.util.Optional;
 public class NotificationService {
     private final NotificationRepository repository;
 
-    @Transactional
     public Notification create(Notification notification) {
-        notification.setCreatedAt(LocalDateTime.now());
         if (notification.getStatus() == null) {
             notification.setStatus(Notification.Status.PENDING);
         }
@@ -36,7 +33,11 @@ public class NotificationService {
         return repository.findByRecipientId(userId);
     }
 
-    @Transactional
+    public List<Notification> findByStatus(String status) {
+        Notification.Status statusEnum = Notification.Status.valueOf(status.toUpperCase());
+        return repository.findByStatus(statusEnum);
+    }
+
     public Notification update(Notification notification) {
         if (!repository.existsById(notification.getId())) {
             throw new RuntimeException("Notification not found with id: " + notification.getId());
@@ -44,33 +45,47 @@ public class NotificationService {
         return repository.save(notification);
     }
 
-    @Transactional
-    public void markAsRead(Long id) {
-        repository.findById(id).ifPresent(notification -> {
-            notification.setReadAt(LocalDateTime.now());
-            notification.setStatus(Notification.Status.READ);
-            repository.save(notification);
-        });
+    public Notification markAsRead(Long id) {
+        Notification notification = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
+        notification.setStatus(Notification.Status.READ);
+        notification.setReadAt(LocalDateTime.now());
+        return repository.save(notification);
     }
 
-    @Transactional
+    public Notification markAsSent(Long id) {
+        Notification notification = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
+        notification.setStatus(Notification.Status.SENT);
+        notification.setSentAt(LocalDateTime.now());
+        return repository.save(notification);
+    }
+
+    public void markAllAsRead(Long userId) {
+        List<Notification> notifications = repository.findByRecipientId(userId);
+        notifications.forEach(notification -> {
+            if (notification.getStatus() != Notification.Status.READ) {
+                notification.setStatus(Notification.Status.READ);
+                notification.setReadAt(LocalDateTime.now());
+            }
+        });
+        repository.saveAll(notifications);
+    }
+
+    public void deleteAllByUserId(Long userId) {
+        List<Notification> notifications = repository.findByRecipientId(userId);
+        repository.deleteAll(notifications);
+    }
+
     public void deleteById(Long id) {
         repository.deleteById(id);
-    }
-
-    public long count() {
-        return repository.count();
     }
 
     public boolean exists(Long id) {
         return repository.existsById(id);
     }
 
-    public long countByUserId(Long userId) {
-        List<Notification> userNotifications = repository.findByRecipientId(userId);
-        return userNotifications.size();
+    public long count() {
+        return repository.count();
     }
-
-    // Add this method for getting notifications by user ID
-
 }

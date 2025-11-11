@@ -1,0 +1,73 @@
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: false
+          httpclient:
+            connect-timeout: 1000
+            response-timeout: 5s
+      routes:
+        - id: notification-service
+          uri: lb://MICRONOTIF
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - RewritePath=/api/notifications/(?<segment>.*), /notifications/$\{segment}
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=1
+        - id: formation-service
+          uri: lb://FORMATION-SERVICE
+          predicates:
+            - Path=/api/formations/**
+          filters:
+            - StripPrefix=1
+        - id: event-service
+          uri: lb://EVENT-SERVICE
+          predicates:
+            - Path=/api/events/**
+          filters:
+            - StripPrefix=1
+        - id: donation-service
+          uri: lb://DONATION
+          predicates:
+            - Path=/api/donations/**
+          filters:
+            - StripPrefix=1
+        - id: report-service
+          uri: lb://REPORT_SERVICE
+          predicates:
+            - Path=/api/reports/**
+          filters:
+            - StripPrefix=1
+        - id: blog-service
+          uri: lb://BLOG
+          predicates:
+            - Path=/api/posts/**
+          filters:
+            - StripPrefix=1
+
+server:
+  port: 8980
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web.cors: DEBUG
+    com.netflix.discovery: DEBUG

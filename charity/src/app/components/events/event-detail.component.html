@@ -1,0 +1,38 @@
+<div class="container" *ngIf="event as ev">
+  <nav class="muted" style="margin-bottom:8px; font-size:13px">
+    <a [routerLink]="['/dashboard']">Accueil</a> / <a [routerLink]="['/events']">Événements</a> / <span>Détails</span>
+  </nav>
+
+  <header class="header" style="margin-bottom:16px; display:flex; align-items:center; justify-content:space-between">
+    <h2 class="title" style="margin:0">{{ ev.title }}</h2>
+    <div class="row-actions">
+      <a class="btn btn-primary" [routerLink]="['/events', ev.idEvent, 'edit']">Modifier</a>
+      <a class="btn btn-secondary" [routerLink]="['/events']">Retour</a>
+    </div>
+  </header>
+
+  <section style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px">
+    <h3 style="margin:0 0 8px 0; font-size:16px; color:#334155">À propos</h3>
+    <p style="margin-top:0; color:#334155">{{ ev.description }}</p>
+
+    <h3 style="margin:16px 0 8px 0; font-size:16px; color:#334155">Informations</h3>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px">
+      <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px">
+        <div class="muted">Type</div>
+        <div><span class="badge">{{ ev.type }}</span></div>
+      </div>
+      <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px">
+        <div class="muted">Date</div>
+        <div>{{ ev.dateEvent }}</div>
+      </div>
+      <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px">
+        <div class="muted">Lieu</div>
+        <div>{{ ev.location }}</div>
+      </div>
+      <div style="background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px; padding:12px">
+        <div class="muted">Financement</div>
+        <div><strong>{{ ev.collectedAmount | number:'1.0-2' }}</strong> / {{ ev.goalAmount | number:'1.0-2' }}</div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,198 @@
+<div class="formation-container">
+
+  <!-- Tableau des formations -->
+  <div class="table-section">
+    <div class="table-header">
+      <h2>Liste des Formations</h2>
+      <div class="header-controls">
+        <!-- Filtre par type -->
+        <div class="filter-group">
+          <label for="typeFilter">Filtrer par type :</label>
+          <select id="typeFilter" [(ngModel)]="selectedType" (change)="onFilterChange()" class="filter-select">
+            <option value="ALL">Tous les types</option>
+            <option value="LANGUE">Langue</option>
+            <option value="COMPETENCE_TECHNIQUE">Compétence technique</option>
+            <option value="SENSIBILISATION">Sensibilisation</option>
+            <option value="INSERTION_PRO">Insertion professionnelle</option>
+            <option value="FORMATION_PROFESSIONNELLE">Formation professionnelle</option>
+            <option value="ATELIER_PRATIQUE">Atelier pratique</option>
+            <option value="SEMINAIRE">Séminaire</option>
+          </select>
+          <button *ngIf="selectedType !== 'ALL'" (click)="resetFilter()" class="btn-reset-filter">
+            Réinitialiser
+          </button>
+        </div>
+        <div class="header-right">
+          <span class="badge-count">{{ filteredFormations.length }} / {{ formations.length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="formations-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Titre</th>
+            <th>Formateur</th>
+            <th>Type</th>
+            <th>Lieu</th>
+            <th>Durée</th>
+            <th>Nombre de Places</th>
+            <!-- Modification des en-têtes de dates -->
+            <th>Date début</th>
+            <th>Date fin</th>
+            <th>Date création</th>
+            <th>Date modification</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of filteredFormations" class="table-row">
+            <td>{{ f.id }}</td>
+            <td class="td-title">{{ f.titre }}</td>
+            <td>{{ f.formateur }}</td>
+            <td><span class="type-badge" [ngClass]="getTypeClass(f.type)">{{ f.type }}</span></td>
+            <td>{{ f.lieu }}</td>
+            <td class="duration-value">{{ f.dureeHeures }}h</td>
+            <td>{{ f.placesMax }}</td>
+            <!-- Dates début et fin : seulement jour/mois/année -->
+            <td class="td-dates">{{ f.dateDebut | date:'dd/MM/yyyy' }}</td>
+            <td class="td-dates">{{ f.dateFin | date:'dd/MM/yyyy' }}</td>
+            <!-- Dates création et modification : avec heure/minutes/secondes -->
+            <td class="td-dates">{{ f.dateCreation | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+            <td class="td-dates">{{ f.dateModification ? (f.dateModification | date:'dd/MM/yyyy HH:mm:ss') : '-' }}</td>
+            <td class="td-actions">
+              <button class="btn-action" (click)="editFormation(f)">Modifier</button>
+              <button class="btn-delete" (click)="deleteFormation(f.id!)">Supprimer</button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredFormations.length === 0">
+            <td colspan="12" class="empty-message">
+              <div class="empty-state">
+                <span class="empty-icon">🔍</span>
+                <p *ngIf="selectedType === 'ALL'">Aucune formation trouvée.</p>
+                <p *ngIf="selectedType !== 'ALL'">Aucune formation de type "{{ getTypeLabel(selectedType) }}" trouvée.</p>
+                <small>Ajoutez une nouvelle formation pour commencer.</small>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- Formulaire création / modification -->
+  <div class="form-section">
+    <h2>{{ isEditing ? 'Modifier la Formation' : 'Ajouter une Formation' }}</h2>
+    <form class="formation-form" (ngSubmit)="saveFormation()" #form="ngForm">
+
+      <div class="form-group">
+        <label for="titre">Titre *</label>
+        <input id="titre" type="text" [(ngModel)]="formationForm.titre" name="titre" required />
+      </div>
+
+      <div class="form-group">
+        <label for="formateur">Formateur *</label>
+        <input id="formateur" type="text" [(ngModel)]="formationForm.formateur" name="formateur" required />
+      </div>
+
+      <div class="form-group">
+        <label for="type">Type *</label>
+        <select id="type" [(ngModel)]="formationForm.type" name="type" required>
+          <option value="LANGUE">Langue</option>
+          <option value="COMPETENCE_TECHNIQUE">Compétence technique</option>
+          <option value="SENSIBILISATION">Sensibilisation</option>
+          <option value="INSERTION_PRO">Insertion professionnelle</option>
+          <option value="FORMATION_PROFESSIONNELLE">Formation professionnelle</option>
+          <option value="ATELIER_PRATIQUE">Atelier pratique</option>
+          <option value="SEMINAIRE">Séminaire</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="lieu">Lieu</label>
+        <input id="lieu" type="text" [(ngModel)]="formationForm.lieu" name="lieu" />
+      </div>
+
+      <div class="form-group">
+        <label for="dureeHeures">Durée (heures) *</label>
+        <input id="dureeHeures" type="number" [(ngModel)]="formationForm.dureeHeures" name="dureeHeures" required min="1" />
+      </div>
+
+      <div class="form-group">
+        <label for="placesMax">Nombre de places *</label>
+        <input id="placesMax" type="number" [(ngModel)]="formationForm.placesMax" name="placesMax" required min="1" />
+      </div>
+
+      <!-- Dates avec validation - changement en type="date" -->
+      <div class="form-group">
+        <label for="dateDebut">Date de début *</label>
+        <input id="dateDebut" type="date" [(ngModel)]="formationForm.dateDebut" name="dateDebut" 
+               required (change)="validateDates()" #dateDebutInput="ngModel" />
+        <div *ngIf="dateDebutInput.invalid && dateDebutInput.touched" class="error-message">
+          <i class="icon-error">⚠️</i> La date de début est requise
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="dateFin">Date de fin *</label>
+        <input id="dateFin" type="date" [(ngModel)]="formationForm.dateFin" name="dateFin" 
+               required (change)="validateDates()" #dateFinInput="ngModel" />
+        <div *ngIf="dateFinInput.invalid && dateFinInput.touched" class="error-message">
+          <i class="icon-error">⚠️</i> 
+          <span *ngIf="dateFinInput.errors?.['required']">La date de fin est requise</span>
+        </div>
+        <div *ngIf="dateError" class="error-message">
+          <i class="icon-error">⚠️</i> {{ dateError }}
+        </div>
+      </div>
+
+      <div class="form-group full-width">
+        <label for="description">Description</label>
+        <textarea id="description" [(ngModel)]="formationForm.description" name="description"></textarea>
+      </div>
+
+      <div class="form-group full-width">
+        <label for="prerequis">Prérequis</label>
+        <textarea id="prerequis" [(ngModel)]="formationForm.prerequis" name="prerequis"></textarea>
+      </div>
+
+      <div class="form-group full-width">
+        <label for="publicCible">Public cible</label>
+        <input id="publicCible" type="text" [(ngModel)]="formationForm.publicCible" name="publicCible"/>
+      </div>
+
+      <div class="form-group full-width">
+        <label for="competencesAcquises">Compétences acquises (séparées par une virgule)</label>
+        <input id="competencesAcquises" type="text" [(ngModel)]="competencesText" name="competencesAcquises" placeholder="Anglais, Communication, Programmation..."/>
+      </div>
+
+      <div class="form-group full-width">
+        <label for="associationId">ID Association *</label>
+        <input id="associationId" type="number" [(ngModel)]="formationForm.associationId" name="associationId" required min="1" />
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-submit" type="submit" [disabled]="form.invalid || dateError">
+          {{ isEditing ? 'Modifier' : 'Ajouter' }}
+        </button>
+        <button type="button" class="btn-cancel" (click)="resetForm()" *ngIf="isEditing">
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Toast pour les notifications -->
+  <div *ngIf="showToast" class="toast" [ngClass]="toastType">
+    <div class="toast-content">
+      <span class="toast-icon">{{ toastIcon }}</span>
+      <span class="toast-message">{{ toastMessage }}</span>
+    </div>
+    <button class="toast-close" (click)="hideToast()">×</button>
+  </div>
+
+</div>

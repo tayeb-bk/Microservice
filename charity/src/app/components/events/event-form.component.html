@@ -1,0 +1,63 @@
+<div class="container">
+  <nav class="muted" style="margin-bottom:8px; font-size:13px">
+    <a [routerLink]="['/dashboard']">Accueil</a> / <a [routerLink]="['/events']">Événements</a> /
+    <span>{{ isEdit ? 'Modifier' : 'Nouveau' }}</span>
+  </nav>
+
+  <h2 class="title">{{ isEdit ? 'Modifier un événement' : 'Nouvel événement' }}</h2>
+
+  <form (ngSubmit)="submit()" #f="ngForm" novalidate style="display:grid; gap:12px; max-width:800px">
+    <h3 style="margin:0; font-size:16px; color:#334155">Informations principales</h3>
+    <div style="display:grid; gap:8px">
+      <label class="muted">Titre</label>
+      <input name="title" [(ngModel)]="model.title" required #title="ngModel" class="input" />
+      <div *ngIf="title.invalid && (title.dirty || title.touched)" style="color:#d32f2f">Le titre est requis</div>
+    </div>
+
+    <div style="display:grid; gap:8px">
+      <label class="muted">Description</label>
+      <textarea name="description" [(ngModel)]="model.description" required #description="ngModel" class="input" rows="4"></textarea>
+      <div *ngIf="description.invalid && (description.dirty || description.touched)" style="color:#d32f2f">La description est requise</div>
+    </div>
+
+    <h3 style="margin:8px 0 0 0; font-size:16px; color:#334155">Détails</h3>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px">
+      <div style="display:grid; gap:8px">
+        <label class="muted">Lieu</label>
+        <input name="location" [(ngModel)]="model.location" required #location="ngModel" class="input" />
+        <div *ngIf="location.invalid && (location.dirty || location.touched)" style="color:#d32f2f">Le lieu est requis</div>
+      </div>
+      <div style="display:grid; gap:8px">
+        <label class="muted">Date</label>
+        <input type="date" name="dateEvent" [(ngModel)]="model.dateEvent" required #dateEvent="ngModel" class="input" />
+        <div *ngIf="dateEvent.invalid && (dateEvent.dirty || dateEvent.touched)" style="color:#d32f2f">La date est requise</div>
+      </div>
+    </div>
+
+    <h3 style="margin:8px 0 0 0; font-size:16px; color:#334155">Financement</h3>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:12px">
+      <div style="display:grid; gap:8px">
+        <label class="muted">Objectif</label>
+        <input type="number" step="0.01" min="0" name="goalAmount" [(ngModel)]="model.goalAmount" required #goalAmount="ngModel" class="input" />
+        <div *ngIf="goalAmount.invalid && (goalAmount.dirty || goalAmount.touched)" style="color:#d32f2f">Obligatoire et ≥ 0</div>
+      </div>
+      <div style="display:grid; gap:8px">
+        <label class="muted">Collecté</label>
+        <input type="number" step="0.01" min="0" name="collectedAmount" [(ngModel)]="model.collectedAmount" required #collectedAmount="ngModel" class="input" />
+        <div *ngIf="collectedAmount.invalid && (collectedAmount.dirty || collectedAmount.touched)" style="color:#d32f2f">Obligatoire et ≥ 0</div>
+      </div>
+      <div style="display:grid; gap:8px">
+        <label class="muted">Type</label>
+        <select name="type" [(ngModel)]="model.type" required #type="ngModel" class="input">
+          <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+        </select>
+        <div *ngIf="type.invalid && (type.dirty || type.touched)" style="color:#d32f2f">Le type est requis</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:8px">
+      <button class="btn btn-primary" type="submit" [disabled]="f.invalid">{{ isEdit ? 'Mettre à jour' : 'Créer' }}</button>
+      <a class="btn btn-secondary" [routerLink]="['/events']">Annuler</a>
+    </div>
+  </form>
+</div>

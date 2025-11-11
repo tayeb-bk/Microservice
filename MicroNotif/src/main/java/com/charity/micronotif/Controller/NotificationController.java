@@ -10,9 +10,8 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/api/notifications") // ← CHANGÉ: Supprimé "/api" car géré par l'API Gateway
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:8083", "http://localhost:4200"})
 public class NotificationController {
     private final NotificationService service;
 
@@ -39,33 +38,42 @@ public class NotificationController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/recipient/{userId}") // ← CHANGÉ: "user" → "recipient" pour cohérence
     public ResponseEntity<List<Notification>> getByUserId(@PathVariable Long userId) {
         List<Notification> notifications = service.findByUserId(userId);
         return ResponseEntity.ok(notifications);
     }
 
-    // ADD THIS ENDPOINT - This is what Angular is calling
-    @GetMapping("/user/{userId}/count")
+    // Endpoint pour le comptage des notifications
+    @GetMapping("/recipient/{userId}/count") // ← CHANGÉ: "user" → "recipient"
     public ResponseEntity<Long> getCountByUserId(@PathVariable Long userId) {
         List<Notification> notifications = service.findByUserId(userId);
         long count = notifications.size();
         return ResponseEntity.ok(count);
     }
 
-    // ADD THIS ENDPOINT - For unread notifications
-    @GetMapping(value = "/user/{userId}", params = "unread")
-    public ResponseEntity<List<Notification>> getUnreadByUserId(
-            @PathVariable Long userId,
-            @RequestParam Boolean unread) {
+    // Endpoint pour les notifications non lues
+    @GetMapping("/recipient/{userId}/unread") // ← CHANGÉ: Nouvel endpoint dédié
+    public ResponseEntity<List<Notification>> getUnreadByUserId(@PathVariable Long userId) {
         List<Notification> notifications = service.findByUserId(userId);
-        if (unread) {
-            List<Notification> unreadNotifications = notifications.stream()
-                    .filter(n -> n.getStatus() != Notification.Status.READ)
-                    .toList();
-            return ResponseEntity.ok(unreadNotifications);
-        }
-        return ResponseEntity.ok(notifications);
+        List<Notification> unreadNotifications = notifications.stream()
+                .filter(n -> n.getStatus() != Notification.Status.READ)
+                .toList();
+        return ResponseEntity.ok(unreadNotifications);
+    }
+
+    // Endpoint pour marquer toutes comme lues
+    @PutMapping("/recipient/{userId}/read-all") // ← AJOUTÉ: Pour "Mark all as read"
+    public ResponseEntity<Void> markAllAsRead(@PathVariable Long userId) {
+        service.markAllAsRead(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    // Endpoint pour supprimer toutes les notifications
+    @DeleteMapping("/recipient/{userId}/all") // ← AJOUTÉ: Pour "Clear all"
+    public ResponseEntity<Void> deleteAllByUserId(@PathVariable Long userId) {
+        service.deleteAllByUserId(userId);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
@@ -79,10 +87,26 @@ public class NotificationController {
         }
     }
 
+    // Endpoint pour marquer comme lu - CORRIGÉ: Retourne la notification mise à jour
     @PutMapping("/{id}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long id) {
-        service.markAsRead(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Notification> markAsRead(@PathVariable Long id) {
+        try {
+            Notification updated = service.markAsRead(id);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // Endpoint pour marquer comme envoyé - AJOUTÉ
+    @PutMapping("/{id}/sent")
+    public ResponseEntity<Notification> markAsSent(@PathVariable Long id) {
+        try {
+            Notification updated = service.markAsSent(id);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -98,5 +122,18 @@ public class NotificationController {
     public ResponseEntity<Long> count() {
         long count = service.count();
         return ResponseEntity.ok(count);
+    }
+
+    // Endpoint pour les notifications par statut
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<Notification>> getByStatus(@PathVariable String status) {
+        List<Notification> notifications = service.findByStatus(status);
+        return ResponseEntity.ok(notifications);
+    }
+
+    // Endpoint de santé
+    @GetMapping("/health")
+    public ResponseEntity<String> health() {
+        return ResponseEntity.ok("Notification service is healthy");
     }
 }
